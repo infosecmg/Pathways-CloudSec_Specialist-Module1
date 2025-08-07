@@ -1,16 +1,20 @@
-Module 1: Solving Multi-Cloud Security Consistency
-Lesson 1.1: Cross-Cloud Security Policy Standardization
-Policy Translation Framework (15 minutes)
-AWS Security Groups ↔ Azure NSGs ↔ GCP Firewall Rules Mapping
-Understanding Platform-Specific Network Security Models:
-AWS Security Groups Characteristics:
+# Module 1: Solving Multi-Cloud Security Consistency
+## Lesson 1.1: Cross-Cloud Security Policy Standardization
 
-Stateful Operation: Automatically allows return traffic for established connections
-Instance-Level Application: Attached directly to EC2 instances or ENIs
-Allow-Only Rules: No explicit deny rules; traffic is denied by default
-Rule Structure: Protocol, port range, source (IP/CIDR/security group), description
+### Policy Translation Framework (15 minutes)
 
-json{
+#### AWS Security Groups ↔ Azure NSGs ↔ GCP Firewall Rules Mapping
+
+**Understanding Platform-Specific Network Security Models:**
+
+**AWS Security Groups Characteristics:**
+- **Stateful Operation:** Automatically allows return traffic for established connections
+- **Instance-Level Application:** Attached directly to EC2 instances or ENIs
+- **Allow-Only Rules:** No explicit deny rules; traffic is denied by default
+- **Rule Structure:** Protocol, port range, source (IP/CIDR/security group), description
+
+```json
+{
   "GroupName": "web-tier-sg",
   "Description": "Security group for web tier servers",
   "IpPermissions": [
@@ -28,14 +32,16 @@ json{
     }
   ]
 }
-Azure Network Security Groups (NSGs) Characteristics:
+```
 
-Stateful with Stateless Capability: Can configure stateless rules if needed
-Subnet or NIC-Level Application: Can be applied to subnets or individual network interfaces
-Allow and Deny Rules: Explicit allow and deny rules with priority ordering
-Default Rules: Built-in default rules that can be overridden
+**Azure Network Security Groups (NSGs) Characteristics:**
+- **Stateful with Stateless Capability:** Can configure stateless rules if needed
+- **Subnet or NIC-Level Application:** Can be applied to subnets or individual network interfaces
+- **Allow and Deny Rules:** Explicit allow and deny rules with priority ordering
+- **Default Rules:** Built-in default rules that can be overridden
 
-json{
+```json
+{
   "name": "web-tier-nsg",
   "properties": {
     "securityRules": [
@@ -68,14 +74,16 @@ json{
     ]
   }
 }
-GCP Firewall Rules Characteristics:
+```
 
-Stateful Operation: Automatically handles return traffic
-VPC-Level Application: Applied to entire VPC with target-based filtering
-Allow and Deny Rules: Both allow and deny rules with priority-based precedence
-Tag-Based Targeting: Uses network tags for granular resource targeting
+**GCP Firewall Rules Characteristics:**
+- **Stateful Operation:** Automatically handles return traffic
+- **VPC-Level Application:** Applied to entire VPC with target-based filtering
+- **Allow and Deny Rules:** Both allow and deny rules with priority-based precedence
+- **Tag-Based Targeting:** Uses network tags for granular resource targeting
 
-json{
+```json
+{
   "name": "web-tier-firewall",
   "description": "Firewall rule for web tier servers",
   "direction": "INGRESS",
@@ -89,12 +97,23 @@ json{
     }
   ]
 }
-Cross-Platform Mapping Logic:
+```
+
+**Cross-Platform Mapping Logic:**
+
 Create a translation matrix that converts security intent across platforms:
-Security IntentAWS ImplementationAzure ImplementationGCP ImplementationAllow HTTP from InternetSecurity Group: Allow TCP/80 from 0.0.0.0/0NSG: Allow TCP/80 Inbound from InternetFirewall: Allow TCP/80 from 0.0.0.0/0Allow SSH from Management NetworkSecurity Group: Allow TCP/22 from 10.0.0.0/16NSG: Allow TCP/22 Inbound from 10.0.0.0/16Firewall: Allow TCP/22 from 10.0.0.0/16Deny All Other TrafficImplicit (default deny)Default rules + explicit denyImplicit (default deny)
-IAM Policy Equivalency Across Platforms
-AWS IAM Policy Structure:
-json{
+
+| Security Intent | AWS Implementation | Azure Implementation | GCP Implementation |
+|-----------------|-------------------|---------------------|-------------------|
+| Allow HTTP from Internet | Security Group: Allow TCP/80 from 0.0.0.0/0 | NSG: Allow TCP/80 Inbound from Internet | Firewall: Allow TCP/80 from 0.0.0.0/0 |
+| Allow SSH from Management Network | Security Group: Allow TCP/22 from 10.0.0.0/16 | NSG: Allow TCP/22 Inbound from 10.0.0.0/16 | Firewall: Allow TCP/22 from 10.0.0.0/16 |
+| Deny All Other Traffic | Implicit (default deny) | Default rules + explicit deny | Implicit (default deny) |
+
+#### IAM Policy Equivalency Across Platforms
+
+**AWS IAM Policy Structure:**
+```json
+{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -116,8 +135,11 @@ json{
     }
   ]
 }
-Azure RBAC Policy Structure:
-json{
+```
+
+**Azure RBAC Policy Structure:**
+```json
+{
   "properties": {
     "roleName": "Storage Blob Data Reader Custom",
     "description": "Read access to blob data with encryption requirement",
@@ -138,8 +160,11 @@ json{
     ]
   }
 }
-GCP IAM Policy Structure:
-json{
+```
+
+**GCP IAM Policy Structure:**
+```json
+{
   "bindings": [
     {
       "role": "roles/storage.objectViewer",
@@ -154,14 +179,33 @@ json{
     }
   ]
 }
-Permission Equivalency Table:
-Common PermissionAWS ActionAzure ActionGCP RoleRead Object Storages3:GetObjectMicrosoft.Storage/.../blobs/readstorage.objectViewerList Storage Containerss3:ListBucketMicrosoft.Storage/.../containers/readstorage.objectViewerCreate Virtual Machineec2:RunInstancesMicrosoft.Compute/virtualMachines/writecompute.instanceAdmin.v1Manage Network Securityec2:AuthorizeSecurityGroupIngressMicrosoft.Network/networkSecurityGroups/writecompute.securityAdmin
-Compliance Control Mapping (SOC2, PCI-DSS Cross-Platform)
-SOC 2 Type II Control Mapping:
-CC6.1 - Logical and Physical Access Controls:
-Control RequirementAWS ImplementationAzure ImplementationGCP ImplementationNetwork segmentationVPC + Security Groups + NACLsVNet + NSGs + Application Security GroupsVPC + Firewall Rules + Private Google AccessAccess loggingCloudTrail + VPC Flow LogsActivity Logs + NSG Flow LogsCloud Audit Logs + VPC Flow LogsMulti-factor authenticationIAM MFA + AWS SSOAzure AD MFA + Conditional AccessCloud Identity + 2-Step Verification
-CC6.7 - Data Transmission Controls:
-yaml# Cross-platform encryption in transit policy
+```
+
+**Permission Equivalency Table:**
+
+| Common Permission | AWS Action | Azure Action | GCP Role |
+|-------------------|------------|--------------|----------|
+| Read Object Storage | s3:GetObject | Microsoft.Storage/.../blobs/read | storage.objectViewer |
+| List Storage Containers | s3:ListBucket | Microsoft.Storage/.../containers/read | storage.objectViewer |
+| Create Virtual Machine | ec2:RunInstances | Microsoft.Compute/virtualMachines/write | compute.instanceAdmin.v1 |
+| Manage Network Security | ec2:AuthorizeSecurityGroupIngress | Microsoft.Network/networkSecurityGroups/write | compute.securityAdmin |
+
+#### Compliance Control Mapping (SOC2, PCI-DSS Cross-Platform)
+
+**SOC 2 Type II Control Mapping:**
+
+**CC6.1 - Logical and Physical Access Controls:**
+
+| Control Requirement | AWS Implementation | Azure Implementation | GCP Implementation |
+|--------------------|--------------------|---------------------|-------------------|
+| Network segmentation | VPC + Security Groups + NACLs | VNet + NSGs + Application Security Groups | VPC + Firewall Rules + Private Google Access |
+| Access logging | CloudTrail + VPC Flow Logs | Activity Logs + NSG Flow Logs | Cloud Audit Logs + VPC Flow Logs |
+| Multi-factor authentication | IAM MFA + AWS SSO | Azure AD MFA + Conditional Access | Cloud Identity + 2-Step Verification |
+
+**CC6.7 - Data Transmission Controls:**
+
+```yaml
+# Cross-platform encryption in transit policy
 encryption_in_transit:
   aws:
     - enforce_ssl_only: true
@@ -175,11 +219,22 @@ encryption_in_transit:
     - ssl_policy: "STRONG"
     - min_tls_version: "TLS_1_2"
     - certificate_manager: "Google-managed SSL"
-PCI DSS Control Mapping:
-Requirement 1 - Install and maintain a firewall configuration:
-PCI DSS ControlAWS ConfigurationAzure ConfigurationGCP Configuration1.1.4 - Current network diagramVPC diagrams with Security GroupsVirtual Network topology with NSGsVPC network diagram with firewall rules1.2.1 - Restrict inbound/outbound trafficSecurity Groups + NACLsNSGs + Azure FirewallVPC firewall rules + Cloud NAT1.3.4 - Do not allow direct public accessPrivate subnets + NAT GatewayPrivate subnets + NAT GatewayPrivate Google Access + Cloud NAT
-Requirement 7 - Restrict access to cardholder data by business need to know:
-json{
+```
+
+**PCI DSS Control Mapping:**
+
+**Requirement 1 - Install and maintain a firewall configuration:**
+
+| PCI DSS Control | AWS Configuration | Azure Configuration | GCP Configuration |
+|-----------------|-------------------|---------------------|-------------------|
+| 1.1.4 - Current network diagram | VPC diagrams with Security Groups | Virtual Network topology with NSGs | VPC network diagram with firewall rules |
+| 1.2.1 - Restrict inbound/outbound traffic | Security Groups + NACLs | NSGs + Azure Firewall | VPC firewall rules + Cloud NAT |
+| 1.3.4 - Do not allow direct public access | Private subnets + NAT Gateway | Private subnets + NAT Gateway | Private Google Access + Cloud NAT |
+
+**Requirement 7 - Restrict access to cardholder data by business need to know:**
+
+```json
+{
   "compliance_control": "PCI_DSS_7.1",
   "description": "Limit access to system components and cardholder data",
   "implementations": {
@@ -197,11 +252,18 @@ json{
     }
   }
 }
-Unified Policy Template Development (15 minutes)
-JSON/YAML-Based Cross-Platform Policy Definitions
-Universal Security Policy Schema:
+```
+
+### Unified Policy Template Development (15 minutes)
+
+#### JSON/YAML-Based Cross-Platform Policy Definitions
+
+**Universal Security Policy Schema:**
+
 Design a vendor-neutral schema that captures security requirements without platform-specific syntax:
-yaml# Universal Security Policy Definition
+
+```yaml
+# Universal Security Policy Definition
 apiVersion: security.policy/v1
 kind: SecurityPolicy
 metadata:
@@ -273,9 +335,14 @@ spec:
         min_length: 14
         complexity: true
         rotation_days: 90
-Policy Transformation Engine:
+```
+
+**Policy Transformation Engine:**
+
 Create transformation logic that converts universal policies to platform-specific configurations:
-python# Policy Translation Engine (Pseudo-code)
+
+```python
+# Policy Translation Engine (Pseudo-code)
 class PolicyTranslator:
     def __init__(self):
         self.aws_translator = AWSPolicyTranslator()
@@ -315,9 +382,14 @@ class AWSPolicyTranslator:
             }
             security_groups.append(sg_rule)
         return security_groups
-Terraform Modules for Consistent Security Controls
-Multi-Cloud Security Module Structure:
-hcl# modules/multi-cloud-security/main.tf
+```
+
+#### Terraform Modules for Consistent Security Controls
+
+**Multi-Cloud Security Module Structure:**
+
+```hcl
+# modules/multi-cloud-security/main.tf
 terraform {
   required_providers {
     aws = {
@@ -422,8 +494,12 @@ module "gcp_security" {
     google = google
   }
 }
-AWS-Specific Module Implementation:
-hcl# modules/multi-cloud-security/aws/main.tf
+```
+
+**AWS-Specific Module Implementation:**
+
+```hcl
+# modules/multi-cloud-security/aws/main.tf
 resource "aws_security_group" "main" {
   name_prefix = "${var.security_policy.name}-"
   description = "Security group for ${var.security_policy.name}"
@@ -483,8 +559,12 @@ resource "aws_iam_policy" "service_policies" {
     ]
   })
 }
-Azure-Specific Module Implementation:
-hcl# modules/multi-cloud-security/azure/main.tf
+```
+
+**Azure-Specific Module Implementation:**
+
+```hcl
+# modules/multi-cloud-security/azure/main.tf
 resource "azurerm_network_security_group" "main" {
   name                = "${var.security_policy.name}-nsg"
   location            = var.location
@@ -531,9 +611,14 @@ resource "azurerm_role_definition" "service_roles" {
     "/subscriptions/${data.azurerm_subscription.current.subscription_id}"
   ]
 }
-Cloud-Agnostic Security Baseline Implementation
-Security Baseline Configuration Template:
-yaml# security-baseline.yaml
+```
+
+#### Cloud-Agnostic Security Baseline Implementation
+
+**Security Baseline Configuration Template:**
+
+```yaml
+# security-baseline.yaml
 apiVersion: security.baseline/v1
 kind: SecurityBaseline
 metadata:
@@ -615,8 +700,12 @@ spec:
     security_assessments:
       frequency_days: 90
       penetration_testing: 365  # annually
-Baseline Implementation Terraform Module:
-hcl# modules/security-baseline/main.tf
+```
+
+**Baseline Implementation Terraform Module:**
+
+```hcl
+# modules/security-baseline/main.tf
 locals {
   baseline_config = yamldecode(file("${path.module}/security-baseline.yaml"))
 }
@@ -743,10 +832,16 @@ locals {
     }
   ]
 }
-Image Suggestions
+```
 
-Policy Translation Flow Diagram: Visual flowchart showing how a universal security policy gets translated into AWS Security Groups, Azure NSGs, and GCP Firewall Rules, with specific examples of rule mappings
-IAM Equivalency Matrix: Side-by-side comparison table/chart showing equivalent permissions across AWS IAM, Azure RBAC, and GCP Cloud IAM with color-coded mapping relationships
-Compliance Control Dashboard: Mock-up dashboard showing SOC 2 and PCI DSS compliance status across all three cloud platforms with unified reporting metrics
-Terraform Module Architecture: Technical diagram illustrating the modular structure of the multi-cloud security Terraform modules, showing how universal policy definitions flow through platform-specific implementations
-Security Baseline Implementation Pipeline: DevOps pipeline visualization showing how security baselines are automatically deployed and enforced across multiple cloud platforms using Infrastructure as Code
+### Image Suggestions
+
+1. **Policy Translation Flow Diagram**: Visual flowchart showing how a universal security policy gets translated into AWS Security Groups, Azure NSGs, and GCP Firewall Rules, with specific examples of rule mappings
+
+2. **IAM Equivalency Matrix**: Side-by-side comparison table/chart showing equivalent permissions across AWS IAM, Azure RBAC, and GCP Cloud IAM with color-coded mapping relationships
+
+3. **Compliance Control Dashboard**: Mock-up dashboard showing SOC 2 and PCI DSS compliance status across all three cloud platforms with unified reporting metrics
+
+4. **Terraform Module Architecture**: Technical diagram illustrating the modular structure of the multi-cloud security Terraform modules, showing how universal policy definitions flow through platform-specific implementations
+
+5. **Security Baseline Implementation Pipeline**: DevOps pipeline visualization showing how security baselines are automatically deployed and enforced across multiple cloud platforms using Infrastructure as Code
